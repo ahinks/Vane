@@ -88,10 +88,23 @@ class APISearchAgent {
       ],
     });
 
+    const textBlockId = crypto.randomUUID();
+    let fullText = '';
+
+    session.emitBlock({
+      id: textBlockId,
+      type: 'text',
+      data: '',
+    });
+
     for await (const chunk of answerStream) {
+      fullText += chunk.contentChunk;
       session.emit('data', {
-        type: 'response',
-        data: chunk.contentChunk,
+        type: 'updateBlock',
+        blockId: textBlockId,
+        patch: [
+          { op: 'replace', path: '/data', value: fullText },
+        ],
       });
     }
 
