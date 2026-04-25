@@ -1,0 +1,38 @@
+{
+    "version": 1,
+    "setupComplete": true,
+    "preferences": {
+        "theme": "dark",
+        "measureUnit": "Metric",
+        "autoMediaSearch": true,
+        "showWeatherWidget": false,
+        "showNewsWidget": false
+    },
+    "personalization": {
+        "systemInstructions": "You are HinksBot, Alex's AI assistant. Be concise, direct, and technically accurate. Use emojis for visual clarity."
+    },
+    "modelProviders": [
+        {
+            "id": "qwen3-35b-local",
+            "name": "Qwen3.6-35B (Local)",
+            "type": "openai",
+            "chatModels": [
+                {
+                    "id": "qwen3.6-35b-instruct",
+                    "name": "Qwen3.6-35B Instruct",
+                    "enabled": true,
+                    "default": true
+                }
+            ],
+            "embeddingModels": [],
+            "config": {
+                "apiKey": "not-required",
+                "baseURL": "http://localhost:8081/v1"
+            },
+            "hash": "qwen3local"
+        }
+    ],
+    "search": {
+        "searxngURL": "http://localhost:8083"
+    }
+}
