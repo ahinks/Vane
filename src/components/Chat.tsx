@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import MessageInput from './MessageInput';
 import MessageBox from './MessageBox';
 import MessageBoxLoading from './MessageBoxLoading';
+import QuickResultsBanner from './QuickResultsBanner';
 import { useChat } from '@/lib/hooks/useChat';
 
 const Chat = () => {
@@ -79,6 +80,7 @@ const Chat = () => {
       })}
       {loading && !messageAppeared && <MessageBoxLoading />}
       <div ref={messageEnd} className="h-0" />
+      <QuickResultsBanner />
       {dividerWidth > 0 && (
         <div
           className="fixed z-40 bottom-24 lg:bottom-6"

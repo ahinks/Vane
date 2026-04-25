@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
 import EmptyChatMessageInput from './EmptyChatMessageInput';
+import QuickResultsBanner from './QuickResultsBanner';
 import { File } from './ChatWindow';
 import Link from 'next/link';
 import WeatherWidget from './WeatherWidget';
@@ -67,6 +68,7 @@ const EmptyChat = () => {
             )}
           </div>
         )}
+        <QuickResultsBanner />
       </div>
     </div>
   );

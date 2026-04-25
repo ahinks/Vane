@@ -3,8 +3,9 @@ services:
     image: itzcrazykns1337/vane:latest
     build:
       context: .
-    ports:
-      - '3000:3000'
+    environment:
+      - HOST=0.0.0.0
+    network_mode: host
     volumes:
       - data:/home/vane/data
     restart: unless-stopped

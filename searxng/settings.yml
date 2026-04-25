@@ -10,8 +10,52 @@ search:
     - json
 
 server:
-  secret_key: 'a2fb23f1b02e6ee83875b09826990de0f6bd908b6638e8c10277d415f6ab852b' # Is overwritten by ${SEARXNG_SECRET}
+  secret_key: 'a2fb23f1b02e6ee83875b09826990de0f6bd908b6638e8c10277d415f6ab852b'
+  limiter: false
+
+ui:
+  static_use_hash: true
+
+outgoing:
+  request_timeout: 10.0
+  max_request_timeout: 20.0
+  max_connections: 100
+  pool_max_size: 20
 
 engines:
+  - name: google
+    engine: google
+    disabled: false
+  - name: bing
+    engine: bing
+    disabled: false
+  - name: startpage
+    engine: startpage
+    disabled: false
+  - name: wikipedia
+    engine: wikipedia
+    disabled: false
+  - name: wikidata
+    engine: wikidata
+    disabled: false
+  - name: arxiv
+    engine: arxiv
+    disabled: false
+  - name: github
+    engine: github
+    disabled: false
+  - name: reddit
+    engine: reddit
+    disabled: false
   - name: wolframalpha
+    engine: wolframalpha
+    disabled: false
+  - name: braveapi
+    engine: braveapi
+    api_key: BSAXBBOjWZ-EJ0bqWNOgFjNnOanEl_5
+    disabled: false
+    max_connections: 1
+    rate_limit: 1.1
+  - name: google-news
+    engine: google-news
     disabled: false
