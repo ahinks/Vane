@@ -98,7 +98,12 @@ class APISearchAgent {
     });
 
     for await (const chunk of answerStream) {
-      fullText += chunk.contentChunk;
+      const text = chunk.contentChunk ?? '';
+      fullText += text;
+      session.emit('data', {
+        type: 'response',
+        data: text,
+      });
       session.emit('data', {
         type: 'updateBlock',
         blockId: textBlockId,
