@@ -130,7 +130,7 @@ const checkConfig = async (
     chatModelKey = chatModel.key;
 
     const embeddingModelProvider =
-      providers.find((p) => p.id === embeddingModelProviderId) ??
+      providers.find((p) => p.embeddingModels.length > 0 && p.id === embeddingModelProviderId) ??
       providers.find((p) => p.embeddingModels.length > 0);
 
     if (!embeddingModelProvider) {

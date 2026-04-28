@@ -40,13 +40,16 @@ const getStepTitle = (
     const queries = Array.isArray(step.searching) ? step.searching : [];
     return `Searching ${queries.length} ${queries.length === 1 ? 'query' : 'queries'}`;
   } else if (step.type === 'search_results') {
-    return `Found ${step.reading.length} ${step.reading.length === 1 ? 'result' : 'results'}`;
+    const readingCount = step.reading?.length ?? 0;
+    return `Found ${readingCount} ${readingCount === 1 ? 'result' : 'results'}`;
   } else if (step.type === 'reading') {
-    return `Reading ${step.reading.length} ${step.reading.length === 1 ? 'source' : 'sources'}`;
+    const readingCount = step.reading?.length ?? 0;
+    return `Reading ${readingCount} ${readingCount === 1 ? 'source' : 'sources'}`;
   } else if (step.type === 'upload_searching') {
     return 'Scanning your uploaded documents';
   } else if (step.type === 'upload_search_results') {
-    return `Reading ${step.results.length} ${step.results.length === 1 ? 'document' : 'documents'}`;
+    const resultsCount = step.results?.length ?? 0;
+    return `Reading ${resultsCount} ${resultsCount === 1 ? 'document' : 'documents'}`;
   }
 
   return 'Processing';
@@ -177,7 +180,7 @@ const AssistantSteps = ({
 
                       {(step.type === 'search_results' ||
                         step.type === 'reading') &&
-                        step.reading.length > 0 && (
+                        (step.reading?.length ?? 0) > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
                             {step.reading.slice(0, 4).map((result, idx) => {
                               const url = result.metadata.url || '';
@@ -212,7 +215,7 @@ const AssistantSteps = ({
                         )}
 
                       {step.type === 'upload_searching' &&
-                        step.queries.length > 0 && (
+                        (step.queries?.length ?? 0) > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-1.5">
                             {step.queries.map((query, idx) => (
                               <span
@@ -226,7 +229,7 @@ const AssistantSteps = ({
                         )}
 
                       {step.type === 'upload_search_results' &&
-                        step.results.length > 0 && (
+                        (step.results?.length ?? 0) > 0 && (
                           <div className="mt-1.5 grid gap-3 lg:grid-cols-3">
                             {step.results.slice(0, 4).map((result, idx) => {
                               const title =

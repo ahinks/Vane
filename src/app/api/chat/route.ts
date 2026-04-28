@@ -132,7 +132,10 @@ export const POST = async (req: Request) => {
       registry.loadEmbeddingModel(
         body.embeddingModel.providerId,
         body.embeddingModel.key,
-      ),
+      ).catch((err) => {
+        console.warn(`Embedding model load failed: ${err.message}. Proceeding without embeddings.`);
+        return null;
+      }),
     ]);
 
     const history: ChatTurnMessage[] = body.history.map((msg) => {
