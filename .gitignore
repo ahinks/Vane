@@ -22,6 +22,8 @@ dist/
 
 # Config files
 config.toml
+data/config.json
+data/*.json
 
 # Log files
 logs/

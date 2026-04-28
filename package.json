@@ -5,7 +5,8 @@
   "author": "ItzCrazyKns",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build --webpack && cp -rf .next/static .next/standalone/.next/",
+    "postbuild": "cp -rf .next/static .next/standalone/.next/",
     "start": "next start",
     "lint": "next lint",
     "format:write": "prettier . --write"
