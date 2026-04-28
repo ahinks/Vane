@@ -22,7 +22,7 @@ export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
 ) => {
-  const searxngURL = getSearxngURL();
+  const searxngURL = getSearxngURL() || process.env.SEARCH_SEARXNG_URL || 'http://127.0.0.1:9083';
 
   const url = new URL(`${searxngURL}/search?format=json`);
   url.searchParams.append('q', query);
@@ -39,7 +39,7 @@ export const searchSearxng = async (
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
 
   try {
     const res = await fetch(url, {

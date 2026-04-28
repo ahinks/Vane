@@ -16,7 +16,7 @@ export const executeSearch = async (input: {
   researchBlock: ResearchBlock;
   session: InstanceType<typeof SessionManager>;
   llm: BaseLLM<any>;
-  embedding: BaseEmbedding<any>;
+  embedding: BaseEmbedding<any> | null;
 }) => {
   const researchBlock = input.researchBlock;
 
@@ -47,23 +47,29 @@ export const executeSearch = async (input: {
 
       let resultChunks: Chunk[] = [];
 
-      try {
-        const queryEmbedding = (await input.embedding.embedText([q]))[0];
+        const embedding = input.embedding;
+        try {
+          const queryEmbedding = embedding
+            ? (await embedding.embedText([q]))[0]
+            : null;
 
         resultChunks = (
           await Promise.all(
             res.results.map(async (r) => {
               const content = r.content || r.title;
-              const chunkEmbedding = (
-                await input.embedding.embedText([content])
-              )[0];
+              const chunkEmbedding = embedding
+                ? (await embedding.embedText([content]))[0]
+                : null;
 
               return {
                 content,
                 metadata: {
                   title: r.title,
                   url: r.url,
-                  similarity: computeSimilarity(queryEmbedding, chunkEmbedding),
+                  similarity:
+                    queryEmbedding && chunkEmbedding
+                      ? computeSimilarity(queryEmbedding, chunkEmbedding)
+                      : 1,
                   embedding: chunkEmbedding,
                 },
               };

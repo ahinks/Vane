@@ -2,6 +2,7 @@ import z from 'zod';
 import { ResearchAction } from '../../types';
 import { Chunk, ReadingResearchBlock } from '@/lib/types';
 import Scraper from '@/lib/scraper';
+import { scrapeSmart } from '@/lib/scraper-advanced';
 import { splitText } from '@/lib/utils/splitText';
 
 const extractorPrompt = `
@@ -79,7 +80,7 @@ const scrapeURLAction: ResearchAction<typeof schema> = {
     await Promise.all(
       params.urls.map(async (url) => {
         try {
-          const scraped = await Scraper.scrape(url);
+          const scraped = await scrapeSmart(url, () => Scraper.scrape(url));
 
           if (
             !readingEmitted &&

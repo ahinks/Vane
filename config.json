@@ -33,6 +33,6 @@
         }
     ],
     "search": {
-        "searxngURL": "http://localhost:8083"
+        "searxngURL": "http://localhost:9083"
     }
 }

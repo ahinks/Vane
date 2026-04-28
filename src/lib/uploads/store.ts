@@ -5,7 +5,7 @@ import { Chunk } from "../types";
 import { hashObj } from '../utils/hash';
 
 type UploadStoreParams = {
-    embeddingModel: BaseEmbedding<any>;
+    embeddingModel: BaseEmbedding<any> | null;
     fileIds: string[];
 }
 
@@ -17,7 +17,7 @@ type StoreRecord = {
 }
 
 class UploadStore {
-    embeddingModel: BaseEmbedding<any>;
+    embeddingModel: BaseEmbedding<any> | null;
     fileIds: string[];
     records: StoreRecord[] = [];
 
@@ -51,6 +51,9 @@ class UploadStore {
     }
 
     async query(queries: string[], topK: number): Promise<Chunk[]> {
+        if (!this.embeddingModel) {
+            return [];
+        }
         const queryEmbeddings = await this.embeddingModel.embedText(queries)
 
         const results: { chunk: Chunk; score: number; }[][] = [];

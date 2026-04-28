@@ -38,7 +38,10 @@ export const POST = async (req: Request) => {
       registry.loadEmbeddingModel(
         body.embeddingModel.providerId,
         body.embeddingModel.key,
-      ),
+      ).catch((err) => {
+        console.warn(`Embedding model load failed: ${err.message}. Proceeding without embeddings.`);
+        return null;
+      }),
     ]);
 
     const history: ChatTurnMessage[] = body.history.map((msg) => {
@@ -199,9 +202,11 @@ export const POST = async (req: Request) => {
       },
     });
   } catch (err: any) {
-    console.error(`Error in getting search results: ${err.message}`);
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : String(err);
+    console.error(`Error in search route: ${message}\n${stack}`);
     return Response.json(
-      { message: 'An error has occurred.' },
+      { message: message || 'An error has occurred.' },
       { status: 500 },
     );
   }

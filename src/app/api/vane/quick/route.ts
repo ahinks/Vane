@@ -27,6 +27,10 @@ export const GET = async (req: Request) => {
 
     const { q, engines, categories, language, limit } = parsed.data;
 
+    const { getSearxngURL } = await import('@/lib/config/serverRegistry');
+    const searxngURL = getSearxngURL();
+    console.error('[DEBUG quick] searxngURL:', searxngURL);
+
     const data = await searchSearxng(q, {
       engines,
       categories,
@@ -46,12 +50,12 @@ export const GET = async (req: Request) => {
         results,
         suggestions: data.suggestions || [],
         engine: 'searxng',
-        latency_ms: 0, // populated below if needed
+        latency_ms: 0,
       },
       { status: 200 },
     );
   } catch (err: any) {
-    console.error('[vane/quick]', err.message);
+    console.error('[vane/quick]', err.message, err.stack?.split('\n').slice(0,3).join(' | '));
     return Response.json({ error: err.message }, { status: 500 });
   }
 };
