@@ -7,113 +7,118 @@ import { WidgetExecutor } from './widgets';
 
 class APISearchAgent {
   async searchAsync(session: SessionManager, input: SearchAgentInput) {
-    const classification = await classify({
-      chatHistory: input.chatHistory,
-      enabledSources: input.config.sources,
-      query: input.followUp,
-      llm: input.config.llm,
-    });
+    try {
+      const classification = await classify({
+        chatHistory: input.chatHistory,
+        enabledSources: input.config.sources,
+        query: input.followUp,
+        llm: input.config.llm,
+      });
 
-    const widgetPromise = WidgetExecutor.executeAll({
-      classification,
-      chatHistory: input.chatHistory,
-      followUp: input.followUp,
-      llm: input.config.llm,
-    }).catch((err) => {
-      console.error(`Error executing widgets: ${err}`);
-      return [];
-    });
-
-    let searchPromise: Promise<ResearcherOutput> | null = null;
-
-    if (!classification.classification.skipSearch) {
-      const researcher = new Researcher();
-      searchPromise = researcher.research(SessionManager.createSession(), {
+      const widgetPromise = WidgetExecutor.executeAll({
+        classification,
         chatHistory: input.chatHistory,
         followUp: input.followUp,
-        classification: classification,
-        config: input.config,
+        llm: input.config.llm,
+      }).catch((err) => {
+        console.error(`Error executing widgets: ${err}`);
+        return [];
       });
-    }
 
-    const [widgetOutputs, searchResults] = await Promise.all([
-      widgetPromise,
-      searchPromise,
-    ]);
+      let searchPromise: Promise<ResearcherOutput> | null = null;
 
-    if (searchResults) {
+      if (!classification.classification.skipSearch) {
+        const researcher = new Researcher();
+        searchPromise = researcher.research(SessionManager.createSession(), {
+          chatHistory: input.chatHistory,
+          followUp: input.followUp,
+          classification: classification,
+          config: input.config,
+        });
+      }
+
+      const [widgetOutputs, searchResults] = await Promise.all([
+        widgetPromise,
+        searchPromise,
+      ]);
+
+      if (searchResults) {
+        session.emit('data', {
+          type: 'searchResults',
+          data: searchResults.searchFindings,
+        });
+      }
+
       session.emit('data', {
-        type: 'searchResults',
-        data: searchResults.searchFindings,
+        type: 'researchComplete',
       });
-    }
 
-    session.emit('data', {
-      type: 'researchComplete',
-    });
+      const finalContext =
+        searchResults?.searchFindings
+          .map(
+            (f, index) =>
+              `<result index=${index + 1} title=${f.metadata.title}>${f.content}</result>`,
+          )
+          .join('\n') || '';
 
-    const finalContext =
-      searchResults?.searchFindings
-        .map(
-          (f, index) =>
-            `<result index=${index + 1} title=${f.metadata.title}>${f.content}</result>`,
-        )
-        .join('\n') || '';
+      const widgetContext = widgetOutputs
+        .map((o) => {
+          return `<result>${o.llmContext}</result>`;
+        })
+        .join('\n-------------\n');
 
-    const widgetContext = widgetOutputs
-      .map((o) => {
-        return `<result>${o.llmContext}</result>`;
-      })
-      .join('\n-------------\n');
+      const finalContextWithWidgets = `<search_results note="These are the search results and assistant can cite these">\n${finalContext}\n</search_results>\n<widgets_result noteForAssistant="Its output is already showed to the user, assistant can use this information to answer the query but do not CITE this as a souce">\n${widgetContext}\n</widgets_result>`;
 
-    const finalContextWithWidgets = `<search_results note="These are the search results and assistant can cite these">\n${finalContext}\n</search_results>\n<widgets_result noteForAssistant="Its output is already showed to the user, assistant can use this information to answer the query but do not CITE this as a souce">\n${widgetContext}\n</widgets_result>`;
+      const writerPrompt = getWriterPrompt(
+        finalContextWithWidgets,
+        input.config.systemInstructions,
+        input.config.mode,
+      );
 
-    const writerPrompt = getWriterPrompt(
-      finalContextWithWidgets,
-      input.config.systemInstructions,
-      input.config.mode,
-    );
-
-    const answerStream = input.config.llm.streamText({
-      messages: [
-        {
-          role: 'system',
-          content: writerPrompt,
-        },
-        ...input.chatHistory,
-        {
-          role: 'user',
-          content: input.followUp,
-        },
-      ],
-    });
-
-    const textBlockId = crypto.randomUUID();
-    let fullText = '';
-
-    session.emitBlock({
-      id: textBlockId,
-      type: 'text',
-      data: '',
-    });
-
-    for await (const chunk of answerStream) {
-      const text = chunk.contentChunk ?? '';
-      fullText += text;
-      session.emit('data', {
-        type: 'response',
-        data: text,
-      });
-      session.emit('data', {
-        type: 'updateBlock',
-        blockId: textBlockId,
-        patch: [
-          { op: 'replace', path: '/data', value: fullText },
+      const answerStream = input.config.llm.streamText({
+        messages: [
+          {
+            role: 'system',
+            content: writerPrompt,
+          },
+          ...input.chatHistory,
+          {
+            role: 'user',
+            content: input.followUp,
+          },
         ],
       });
-    }
 
-    session.emit('end', {});
+      const textBlockId = crypto.randomUUID();
+      let fullText = '';
+
+      session.emitBlock({
+        id: textBlockId,
+        type: 'text',
+        data: '',
+      });
+
+      for await (const chunk of answerStream) {
+        const text = chunk.contentChunk ?? '';
+        fullText += text;
+        session.emit('data', {
+          type: 'response',
+          data: text,
+        });
+        session.emit('data', {
+          type: 'updateBlock',
+          blockId: textBlockId,
+          patch: [
+            { op: 'replace', path: '/data', value: fullText },
+          ],
+        });
+      }
+
+      session.emit('end', {});
+    } catch (err) {
+      console.error(`[APISearchAgent] searchAsync error: ${err}`);
+      session.emit('error', { error: err instanceof Error ? err.message : String(err) });
+    }
   }
 }
 

@@ -194,13 +194,60 @@ class LlamaServerLLM extends BaseLLM<LlamaServerConfig> {
 
     if (response.choices && response.choices.length > 0) {
       try {
-        return input.schema.parse(
-          JSON.parse(
-            repairJson(response.choices[0].message.content!, {
-              extractJson: true,
-            }) as string,
-          ),
-        ) as T;
+        const rawContent = response.choices[0].message.content!;
+
+        // Strategy 1: try repairJson with extractJson (handles trailing garbage)
+        try {
+          const repairedRaw = repairJson(rawContent, { extractJson: true }) as string;
+          // repairJson can return a string that still fails to parse
+          let repaired: unknown;
+          try {
+            repaired = JSON.parse(repairedRaw);
+          } catch {
+            // repairJson didn't actually fix it — fall through to strategy 2
+            throw new Error('repairJson output is not valid JSON');
+          }
+          // If it's a bare array wrapping an object, unwrap it
+          if (Array.isArray(repaired) && repaired.length === 1 && typeof repaired[0] === 'object') {
+            return input.schema.parse(repaired[0]) as T;
+          }
+          // If repairJson returned something that parsed but isn't an object,
+          // fall through to strategy 3 to try extracting a JSON object
+          if (typeof repaired !== 'object' || repaired === null) {
+            throw new Error('repairJson did not return a JSON object');
+          }
+          return input.schema.parse(repaired) as T;
+        } catch (e1) {
+          // Strategy 2: model sometimes returns "[{...}]" — try to extract the object from the array
+          const arrayMatch = rawContent.match(/^\s*\[\s*(\{[\s\S]*\})\s*\]\s*$/);
+          if (arrayMatch) {
+            try {
+              const parsed = JSON.parse(arrayMatch[1]);
+              return input.schema.parse(parsed) as T;
+            } catch {
+              // fall through
+            }
+          }
+
+          // Strategy 3: try extracting first {...} from the raw text
+          const objMatch = rawContent.match(/\{[\s\S]*\}/);
+          if (objMatch) {
+            try {
+              const parsed = JSON.parse(objMatch[0]);
+              return input.schema.parse(parsed) as T;
+            } catch {
+              // fall through
+            }
+          }
+
+          // Last resort: if rawContent has no JSON at all, the model returned plain text.
+          // Return null as a sentinel — callers that can't handle null will throw.
+          console.warn(
+            `[generateObject] Could not parse JSON from LLM response. ` +
+            `Returning null. Raw content preview: ${rawContent.slice(0, 100)}`,
+          );
+          return null as unknown as T;
+        }
       } catch (err) {
         throw new Error(`Error parsing response from LlamaServer: ${err}`);
       }

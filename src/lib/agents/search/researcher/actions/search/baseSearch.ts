@@ -142,6 +142,8 @@ export const executeSearch = async (input: {
 
       for (const indice of uniqueSearchResultIndices.keys()) {
         if (
+          !results[i].metadata.embedding ||
+          !results[indice].metadata.embedding ||
           results[i].metadata.embedding.length === 0 ||
           results[indice].metadata.embedding.length === 0
         )
@@ -288,6 +290,12 @@ export const executeSearch = async (input: {
         },
       ],
     });
+
+    // generateObject returns null when the model returns plain text instead of JSON
+    if (!pickerResponse || !pickerResponse.picked_indices) {
+      console.warn('[baseSearch] LLM did not return valid picker response, skipping URL picker');
+      return [];
+    }
 
     const pickedIndices = pickerResponse.picked_indices.slice(0, 3);
     const pickedResults = pickedIndices
