@@ -29,7 +29,6 @@ export const GET = async (req: Request) => {
 
     const { getSearxngURL } = await import('@/lib/config/serverRegistry');
     const searxngURL = getSearxngURL();
-    console.error('[DEBUG quick] searxngURL:', searxngURL);
 
     const data = await searchSearxng(q, {
       engines,
