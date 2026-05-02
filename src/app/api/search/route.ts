@@ -27,6 +27,13 @@ export const POST = async (req: Request) => {
       );
     }
 
+    if (!body.chatModel?.providerId || !body.embeddingModel?.providerId) {
+      return Response.json(
+        { message: 'Missing chatModel.providerId or embeddingModel.providerId' },
+        { status: 400 },
+      );
+    }
+
     body.history = body.history || [];
     body.optimizationMode = body.optimizationMode || 'speed';
     body.stream = body.stream || false;
