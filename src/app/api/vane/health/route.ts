@@ -33,19 +33,19 @@ export const GET = async () => {
     checks.push({ name: 'vane', status: 'fail', detail: 'systemctl failed' });
   }
 
-  // 2. llama-server on 8081 (Vane model)
+  // 2. llama-server on 8001 (Vane model)
   const t0 = Date.now();
   try {
-    const r = await axios.get('http://localhost:8081/v1/models', { timeout: 3000 });
+    const r = await axios.get('http://localhost:8001/v1/models', { timeout: 3000 });
     checks.push({
-      name: 'llama-8081',
+      name: 'llama-8001',
       status: r.status === 200 ? 'ok' : 'fail',
       latency_ms: Date.now() - t0,
       detail: `HTTP ${r.status}`,
     });
   } catch (e: any) {
     checks.push({
-      name: 'llama-8081',
+      name: 'llama-8001',
       status: 'fail',
       latency_ms: Date.now() - t0,
       detail: e.message,
