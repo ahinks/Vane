@@ -59,7 +59,9 @@ class LlamaServerProvider extends BaseModelProvider<LlamaServerConfig> {
 
       const data = await res.json();
 
-      const models: Model[] = (data.data || []).map((m: any) => {
+      // Support both OpenAI format ({data: []}) and llama-server native format ({models: []})
+      const rawModels = data.data || data.models || [];
+      const models: Model[] = rawModels.map((m: any) => {
         return {
           name: m.id || m.name,
           key: m.id || m.name,
