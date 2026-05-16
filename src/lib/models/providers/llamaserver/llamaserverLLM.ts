@@ -151,8 +151,10 @@ class LlamaServerLLM extends BaseLLM<LlamaServerConfig> {
     for await (const chunk of stream) {
       if (chunk.choices && chunk.choices.length > 0) {
         const toolCalls = chunk.choices[0].delta.tool_calls;
+        const delta = chunk.choices[0].delta as any;
+        const contentChunk = (delta.content || '') + (delta.reasoning_content || '');
         yield {
-          contentChunk: chunk.choices[0].delta.content || '',
+          contentChunk: contentChunk,
           toolCallChunk:
             toolCalls?.map((tc) => {
               if (tc.index === undefined) return undefined;

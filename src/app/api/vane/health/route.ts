@@ -52,10 +52,10 @@ export const GET = async () => {
     });
   }
 
-  // 3. SearXNG (host network port 9083)
+  // 3. SearXNG (host network port 8080)
   const t1 = Date.now();
   try {
-    const r = await axios.get('http://localhost:9083', { timeout: 3000 });
+    const r = await axios.get('http://localhost:8080', { timeout: 3000 });
     checks.push({
       name: 'searxng',
       status: r.status === 200 ? 'ok' : 'warn',
